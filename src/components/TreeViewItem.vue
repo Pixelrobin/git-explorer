@@ -14,7 +14,7 @@
 	<ul v-show="open" v-if="isFolder">
 		<item
 			class="item"
-			v-for="model in model.children"
+			v-for="model in children"
 			:model="model"
 		>
 		</item>
@@ -34,10 +34,33 @@ export default {
 	},
 
 	data() {
+		var c = [];
+
+		if ( this.model.children && this.model.children.length ) {
+			c = this.model.children.slice();
+			c.sort( ( a, b ) => {
+				if ( a.children && !b.children ) return -1;
+				if ( b.children && !a.children ) return 1;
+
+				var
+					an = a.name.toLowerCase(),
+					bn = b.name.toLowerCase();
+
+				if(an < bn) return -1;
+				if(an > bn) return 1;
+				return 0;
+			});
+		}
+
 		return {
-		  open: false
+			open: false,
+			children: c
 		}
 	},
+
+	/*created: function() {
+		this.model = {};
+	},*/
 
 	computed: {
 		isFolder: function () {

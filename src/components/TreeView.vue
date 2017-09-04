@@ -2,7 +2,7 @@
 	<ul>
 		<span v-if = "treeLoading">Loading...</span>
 		<span v-else-if = "treeError">Error!</span>
-		<item v-else :model = "tree" ></item>
+		<item v-else-if = "tree" :model = "tree" ></item>
 	</ul>
 </template>
 
@@ -80,13 +80,12 @@ export default {
 							var base = {};
 
 							for ( var n = 0; n < tree.length; n ++ ) {
-								//if ( tree[ n ].type === "tree" ) {
-								const blob = tree[ n ].type === blob;
+								const blob = tree[ n ].type === "blob";
 
 								var
 									path  = tree[ n ].path.split( "/" ),
 									array = obj.children,
-									file  = blob ? tree.pop() : null;
+									file  = blob ? path.pop() : null;
 
 								if ( path.length > 0 ) {
 									for ( var p = 0; p < path.length; p ++ ) {
