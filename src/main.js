@@ -2,7 +2,9 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import App from './App'
+import { AsyncDataPlugin } from 'vue-async-data-2';
 
+Vue.use( AsyncDataPlugin );
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */

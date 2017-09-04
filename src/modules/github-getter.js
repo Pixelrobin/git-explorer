@@ -1,3 +1,5 @@
+import data from "./fec-data"
+
 const gg = {
 	get: ( path, cb ) => {
 		var request = new XMLHttpRequest();
@@ -12,8 +14,12 @@ const gg = {
 			}
 		}
 
-		request.open( "GET", "https://api.github.com/repos/pixelrobin/fec-database/contents/" );
+		request.open( "GET", "https://api.github.com" + path ); //https://api.github.com/repos/pixelrobin/fec-database/contents/" )
 		request.send();
+	},
+
+	fakeget: ( path, cb ) => {
+		cb( data, null );
 	}
 }
 
