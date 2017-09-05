@@ -10,10 +10,10 @@
     "build": "node build/build.js"
   },
   "dependencies": {
-    "object-pointer": "^1.1.1",
     "promise-polyfill": "^6.0.2",
     "vue": "^2.4.2",
-    "vue-async-data-2": "0.0.2"
+    "vue-async-data-2": "0.0.2",
+    "vue-octicon": "^2.1.1"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

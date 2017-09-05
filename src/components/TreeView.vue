@@ -1,14 +1,26 @@
 <template>
+	<div>
+ 		
+	<div class = "header">
+		<octicon class = "ml-3" name = "code" scale = "2"></octicon>
+ 		<input class="form-control input-sm ml-3" type="text" id="name">
+ 	</div>
 	<ul>
 		<span v-if = "treeLoading">Loading...</span>
 		<span v-else-if = "treeError">Error!</span>
-		<item v-else-if = "tree" :model = "tree" ></item>
+		<item v-else-if = "tree" class = "item" :model = "tree" root = "root" ></item>
 	</ul>
+	</div>
 </template>
 
 <script>
 import TreeViewItem from "./TreeViewItem";
 import gg from "../modules/github-getter";
+import Octicon from "vue-octicon/components/Octicon.vue";
+
+// Individual icons
+import "vue-octicon/icons/code";
+
 
 var data = {
   name: 'My Tree',
@@ -43,7 +55,8 @@ export default {
 	name: "tree-view",
 	
 	components: {
-		"item": TreeViewItem
+		"item": TreeViewItem,
+		Octicon
 	},
 
 	computed: {
@@ -55,7 +68,8 @@ export default {
 
 	data: () => {
 		return {
-			treeData: data
+			treeData: data,
+			root: true
 		}
 	},
 
@@ -73,7 +87,7 @@ export default {
 								tree = res.tree;
 
 							var obj = {
-								name: "My Tree",
+								name: "fec-database",
 								children: []
 							};
 
@@ -104,7 +118,7 @@ export default {
 									}
 								}
 
-								if ( blob ) array.push({ name: file });
+								if ( blob ) array.push({ name: file, path: tree[ n ].path });
 
 								//}
 							}

@@ -20,7 +20,25 @@ const gg = {
 
 	fakeget: ( path, cb ) => {
 		cb( data, null );
-	}
+	},
+
+	fakegetraw: ( path, cb ) => {
+		var request = new XMLHttpRequest();
+
+		request.onreadystatechange = function() {
+			if ( this.readyState === 4 ) {
+				if ( this.status === 200 ) {
+					cb( this.responseText, null );
+				} else {
+					cb( null, 200 );
+				}
+			}
+		}
+
+		request.open( "GET", "https://raw.githubusercontent.com/pixelrobin/fec-database/master/" + path ); 
+		request.send();
+	},
+
 }
 
 export default gg;
