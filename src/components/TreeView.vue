@@ -2,14 +2,17 @@
 	<div>
  		
 	<div class = "header">
-		<octicon class = "ml-3" name = "code" scale = "2"></octicon>
+		<octicon class = "ml-3" name = "repo" scale = "2"></octicon>
  		<input class="form-control input-sm ml-3" type="text" id="name">
  	</div>
-	<ul>
-		<span v-if = "treeLoading">Loading...</span>
-		<span v-else-if = "treeError">Error!</span>
-		<item v-else-if = "tree" class = "item" :model = "tree" root = "root" ></item>
-	</ul>
+
+ 	<div class = "tree-view border-right">
+		<ul>
+			<span v-if = "treeLoading">Loading...</span>
+			<span v-else-if = "treeError">Error!</span>
+			<item v-else-if = "tree" class = "item" :model = "tree" root = "root" ></item>
+		</ul>
+	</div>
 	</div>
 </template>
 
@@ -19,7 +22,7 @@ import gg from "../modules/github-getter";
 import Octicon from "vue-octicon/components/Octicon.vue";
 
 // Individual icons
-import "vue-octicon/icons/code";
+import "vue-octicon/icons/repo";
 
 
 var data = {
@@ -118,7 +121,11 @@ export default {
 									}
 								}
 
-								if ( blob ) array.push({ name: file, path: tree[ n ].path });
+								if ( blob ) array.push({
+									name: file,
+									path: tree[ n ].path,
+									size: tree[ n ].size
+								});
 
 								//}
 							}

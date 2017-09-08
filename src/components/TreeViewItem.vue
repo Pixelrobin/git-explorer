@@ -3,8 +3,9 @@
 <template>
 <li>
 	<div
-		:class="{folder: isFolder}"
-		@click="toggle"
+		class = "no-select"
+		:class = "{folder: isFolder}"
+		@click = "toggle"
 	>
 		<octicon :name = "icon" scale = "1.3"></octicon>
 		<span class = "name">{{model.name}}</span>

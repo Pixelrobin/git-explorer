@@ -29,7 +29,7 @@ export default {
 				width: "20%"
 			},
 			contentStyle: {
-				width: "80%"
+				left: "20%"
 			},
 			drag: false
 		}
@@ -40,7 +40,7 @@ export default {
 			if ( this.drag ) {
 				var percent = ( e.clientX / window.innerWidth ) * 100;
 				this.sideStyle.width = `${percent}%`;
-				this.contentStyle.width = `${100 - percent}%`;
+				this.contentStyle.left = `${percent}%`;
 			}
 		},
 

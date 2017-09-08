@@ -1,7 +1,9 @@
 <template>
+<div>
+	<code-window-tabs :tabs = "tabs" :selected = "data.selectedPath" ></code-window-tabs>
 	<div class = "code-window">
-		<code-window-tabs :tabs = "tabs" :selected = "data.selectedPath" ></code-window-tabs>
-		<code-window-view :code = "code"></code-window-view>
+		<code-window-view :code = "code.text"></code-window-view>
+	</div>
 	</div>
 </template>
 
@@ -21,9 +23,13 @@ var data = {
 
 var tabs = [];
 
+var code = {
+	text: ""
+}
+
 EventBus.$on('open-file', ( path, name ) => {
 	console.log(`Open File ${path}`)
-	/*var insertInto = openFiles.length;
+	var insertInto = openFiles.length;
 
 	Vue.set( openFiles, path, {
 		name: name,
@@ -34,7 +40,7 @@ EventBus.$on('open-file', ( path, name ) => {
 		Vue.set( openFiles[ path ], "text", res )
 	});
 
-	console.log( openFiles );*/
+	console.log( openFiles );
 
 	Vue.set( tabs, tabs.length, {
 		name: name,
@@ -51,6 +57,7 @@ EventBus.$on('open-file', ( path, name ) => {
 
 EventBus.$on( "select-tab", ( path ) => {
 	Vue.set( data, "selectedPath", path );
+	Vue.set( code, "text", openFiles[ path ].text );
 })
 
 export default {
@@ -64,7 +71,7 @@ export default {
 		} else text = "";
 
 		return{
-			code: "",
+			code: code,
 			tabs: tabs,
 			data: data
 		}
