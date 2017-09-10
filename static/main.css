@@ -85,14 +85,6 @@ ul {
 	min-height: 100vh;
 }
 
-.resizer {
-	width: 16px;
-	min-height: 100vh;
-	background-color: none !important;
-	float: left;
-	cursor: ew-resize;
-}
-
 .app {
 	min-width: 100vw;
 	min-height: 100vh;
@@ -155,6 +147,10 @@ ul {
 
 .tabnav-tab.drag {
 	position: absolute;
+}
+
+.tabnav-tabs div {
+	display: inline-block;
 }
 
 .searchnav {
