@@ -145,10 +145,6 @@ ul {
 	color: #24292e;
 }
 
-.tabnav-tab.drag {
-	position: absolute;
-}
-
 .tabnav-tabs div {
 	display: inline-block;
 }
@@ -165,6 +161,7 @@ ul {
 
 pre {
 	white-space:normal;
+	padding: 16px;
 }
 
 code {

@@ -2,29 +2,37 @@
 	<div class = "tabnav main pt-3">
 		<nav class = "tabnav-tabs">
 			<transition-group name = "flip-list" tag = "div">
-				<a
-					v-for = "tab in tabs"
-					:key = "tab.path"
-					:ref = "tab.path"
-					class = "tabnav-tab main no-select"
-					:class = "{ selected: tab.path === selected }"
-					:style = "{ visibility: tab.path !== drag.path ? 'visible' : 'hidden' }"
-					@mousedown = "( event ) => { selectTab( event, tab.path, tab.name ) }"
+				<div
+					v-for = "( tab, index ) in tabs"
+					
+					:key = "tab.id"
+					:ref = "tab.id"
+					
+					class  = "tabnav-tab main no-select"
+					:class = "{ selected: tab.id === selectedId }"
+
+					@mousedown.left = "( event ) => { selectTab( event, index ) }"
+
+					:style = "{
+						visibility: tab.id === drag.id && drag.dragging? 'hidden' : 'visible'
+					}"
 				>
-					<span>{{ tab.name }}</span>
-					<octicon class = "ml-1" name = "x" ></octicon>
-				</a>
+					<span class = "tab-content" >{{ tab.name }}</span>
+					<span @mouseup.middle = "closeTab( index )" >
+						<octicon class = "ml-1" name = "x" ></octicon>
+					</span>
+				</div>
 			</transition-group>
 
-			<a
+			<div
 				v-if = "drag.dragging"
 				class = "tabnav-tab drag no-select selected"
-				:style = "drag.style"
-				ref = "/tab-drag"
+				:style = "{ left: drag.offset.toString() + 'px' }"
+				ref = "~"
 			>
 				{{ drag.name }}
 				<octicon class = "ml-1" name = "x"></octicon>
-			</a>
+			</div>
 		</nav>
 	</div>
 </template>
@@ -34,17 +42,21 @@
 		transition: transform 0.15s;
 	}
 
-	.tabnav-tab.main span {
+	.tabnav.main {
+		overflow: hidden;
+		border-style: none !important;
+	}
+
+	.tabnav-tab.main {
+		transition: transform 0.25s;
+		display: inline-block;
+	}
+
+	.tabnav-tab.main .tab-content {
 		display: inline-block;
 		position: relative;
 		transform: translateX( 10px );
-		transition: transform 0.15s ease-out;
-		background-color: #24292e;
-		z-index: 100;
-	}
-
-	.tabnav-tab.main.selected span {
-		background-color: white;
+		transition: transform 0.2s ease-out;
 	}
 
 	.tabnav-tab.main:hover span {
@@ -57,16 +69,32 @@
 	}
 
 	.tabnav-tab.main .octicon {
-		transform: translateX( -10px );
-		transition: transform 0.15s;
+		/*transform: translateX( -10px );
+		transition: transform 0.15s;*/
+		opacity: 0;
+		transition: opacity 0.15s;
+		transition: transform 0.1s;
 	}
 
 	.tabnav-tab.main:hover .octicon {
-		transform: translateX( 0 );
+		/*transform: translateX( 0 );*/
+		opacity: 1;
 	}
 
 	.tabnav-tab.drag {
-		z-index: 101;
+		position: absolute;
+	}
+
+	.tabnav-tab.main .octicon:hover {
+		color: red;
+		transform: rotate( 6deg );
+	}
+	.flip-list-enter, .flip-list-leave-to, .flip-list-leave-active {
+		transform: translateY(50px) rotate( 15deg );
+	}
+
+	.flip-list-leave-active: {
+		position: absolute;
 	}
 </style>
 
@@ -78,19 +106,8 @@
 	// octicons
 	import "vue-octicon/icons/x";
 
-	var drag = {
-		dragging: false,
-		path: "",
-		index: -1,
-		name: "",
-		style: {},
-		startOffset: 0,
-		lastClientX: -1
-	}
-
-	// Swap two elements in an array
+	// Swap values of two elements in an array
 	var swap = ( array, id1, id2 ) => {
-
 		if ( array[ id1 ] !== undefined && array[ id2 ] !== undefined ) {
 			var placeholder = array[ id2 ];
 
@@ -128,91 +145,156 @@
 
 		data() {
 			return {
-				drag: drag
+				drag: {
+					started: false,
+					dragging: false,
+					name,
+					id: "",
+					lastId: "",
+					offset: 0,
+					startOffset: 0,
+					lastClientX: -1
+				},
+
+				pos: "",
+				tabs: [],
+				selectedId: ""
 			}
 		},
 
 		props: {
-			tabs: Array,
-			selected: String
+		},
+
+		created() {
+			this.$bus.on( "create-tab", this.createTab );
+		},
+
+		destroyed() {
+			this.$bus.off( "create-tab", this.createTab );
 		},
 
 		methods: {
-			selectTab( event, path, name ) {
-				var tab    = this.$refs[ path ][ 0 ],
-					bounds = tab.getBoundingClientRect();
-
-				clearSelection();
-
-				Vue.set( drag, "dragging", true );
-				Vue.set( drag, "path", path );
-				Vue.set( drag, "name", name );
-				Vue.set( drag, "startOffset", event.clientX - bounds.left );
-				Vue.set( drag, "index", this.tabs.findIndex( ( element ) => {
-					return element.path === drag.path
-				}));
-
-				window.addEventListener( "mousemove", this.mousemove );
-				window.addEventListener( "mouseup", this.mouseup );
-
-				this.mousemove( event, true );
-
-				EventBus.$emit( "select-tab", path );
-			},
-
-			// These following methods are called by window events
-			mousemove( event, first ) {
-				var tabBounds = this.$refs[ drag.path ][ 0 ].parentNode.getBoundingClientRect();
-
-				if ( !first ) {
-					var
-						dragTabBounds = this.$refs[ "/tab-drag" ].getBoundingClientRect(),
-						dir           = Math.sign( event.clientX - drag.lastClientX ),
-
-						i = 0, pass = true, sideTab;
-
-					while ( pass ) {
-						pass = false;
-						sideTab = this.tabs[ drag.index + dir ];
-
-						if ( sideTab !== undefined ) {
-							var
-								node   = this.$refs[ sideTab.path ][ 0 ],
-								center = getBoundingClientRectCenter( node ),
-								side   = dir === -1 ? "left" : "right";
-
-							if ( Math.sign( dragTabBounds[ side ] - center ) === dir ) {
-								swap( this.tabs, drag.index, ( drag.index += dir ) );
-								pass = true;
-							}
-						}
-
-						i ++;
-						if ( i > this.tabs.length ) {
-							console.warn( "while loop overflow! This shouldn't happen." );
-							break;
-						}
-					}
-				}
-
-				drag.lastClientX = event.clientX;
-
-				Vue.set( drag, "style", {
-					left: (
-						Math.min(
-							Math.max( event.clientX - tabBounds.left - drag.startOffset, 0 ),
-							tabBounds.right
-						)
-					).toString() + "px",
+			createTab( name, id ) {
+				this.tabs.push({
+					name: name,
+					id: id
 				});
 			},
 
-			mouseup( event ) {
-				window.removeEventListener( "mousemove", this.mousemove );
-				window.removeEventListener( "mouseup", this.mouseup );
+			destroyTab( index ) {
+				this.releaseTab( null, true );
+				this.tabs.splice( index, 1 );
+			},
 
-				Vue.set( drag, "dragging", false );
-				Vue.set( drag, "path", "" );
+			selectTab( event, index ) {
+				if ( event.target.tagName !== "path" && event.target.tagName !== "svg" ) {
+					let
+						id     = this.tabs[ index ].id,
+						name   = this.tabs[ index ].name,
+						tab    = this.$refs[ id ][ 0 ],
+						bounds = tab.getBoundingClientRect();
+
+					this.drag.lastClientX = event.clientX;
+					this.drag.id          = id;
+					this.drag.name        = name;
+					this.drag.startOffset = event.clientX - bounds.left;
+
+					this.selectedId = this.tabs[ index ].id;
+
+					window.addEventListener( "mousemove", this.moveTab );
+					window.addEventListener( "mouseup", this.releaseTab );
+
+					this.pos = 0;
+
+					EventBus.$emit( "select-tab", id );
+				} else { 
+					this.destroyTab( index );
+				}
+			},
+
+			moveTab( event, first ) {
+				if ( this.drag.dragging ) {
+					var tabBounds = this.$refs[ this.drag.id ][ 0 ]
+						.parentNode
+						.getBoundingClientRect();
+
+					if ( !first ) {
+						var
+							dragTabBounds = this.$refs[ "~" ].getBoundingClientRect(),
+							dir           = Math.sign( event.clientX - this.drag.lastClientX ),
+
+							i = 0, pass = true, sideTab;
+
+						// In case the user likes to move their mouse really fast, we use while
+						while ( pass ) {
+							pass = false;
+							sideTab = this.tabs[ this.drag.index + dir ];
+
+							if ( sideTab !== undefined ) {
+								var
+									node   = this.$refs[ sideTab.id ][ 0 ],
+									center = getBoundingClientRectCenter( node ),
+									side   = dir === -1 ? "left" : "right";
+
+								if ( Math.sign( dragTabBounds[ side ] - center ) === dir ) {
+									swap( this.tabs, this.drag.index, ( this.drag.index += dir ) );
+									pass = true;
+								}
+							}
+
+							i ++;
+							if ( i > this.tabs.length ) {
+								console.warn( "while loop overflow! This shouldn't happen." );
+								break;
+							}
+						}
+					}
+
+					this.drag.lastClientX = event.clientX;
+
+					Vue.set( this.drag, "offset", Math.min(
+						Math.max( event.clientX - tabBounds.left - this.drag.startOffset, 0 ),
+						tabBounds.right
+					));
+				} else {
+					if ( Math.abs( event.clientX - this.drag.lastClientX ) > 10 ) {
+
+						var
+							tab    = this.$refs[ this.drag.id ][ 0 ],
+							bounds = tab.getBoundingClientRect();
+
+						clearSelection();
+
+						this.drag.dragging = true;
+						this.drag.index = this.tabs.findIndex( ( element ) => {
+							return element.id === this.drag.id
+						});
+
+						this.moveTab( event, true );
+
+						this.pos = 0;
+					}
+				}
+			},
+
+			releaseTab( event, skip ) {
+				if ( skip !== true ) {
+					var
+						tab = this.$refs[ this.drag.id ][ 0 ],
+						tabBounds = tab.getBoundingClientRect(),
+						rootBounds = tab.parentNode.getBoundingClientRect();
+
+					if ( this.drag.dragging )
+						this.pos = ( tabBounds.left - rootBounds.left ) - this.drag.offset;
+
+					//Vue.set( drag, "lastid", drag.id );
+				}
+
+				window.removeEventListener( "mousemove", this.moveTab );
+				window.removeEventListener( "mouseup", this.releaseTab );
+
+				this.drag.dragging = false;
+				this.drag.id = "";
 			}
 		},
 

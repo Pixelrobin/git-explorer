@@ -3,8 +3,10 @@
 import Vue from 'vue'
 import App from './App'
 import { AsyncDataPlugin } from 'vue-async-data-2';
+import VueBus from "vue-bus";
 
 Vue.use( AsyncDataPlugin );
+Vue.use( VueBus );
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
